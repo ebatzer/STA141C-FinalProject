@@ -8,9 +8,9 @@
 
 DATAFILE="/scratch/transaction.csv"
 
- grep -e u.s. customs and border protection \
-   -e u.s. immigration and customs enforcement \
-   -e executive office of immigration review \
+ grep -ecustoms and border protection \
+   -e immigration and customs enforcement \
+   -e executive office of immigration \
    --ignore-case \
    ${DATAFILE} \
    | cat > selected_agencies.csv
