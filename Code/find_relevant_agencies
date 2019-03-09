@@ -8,16 +8,8 @@
 
 DATAFILE="/scratch/transaction.csv"
 AWARD_SUBTIER=55
-FUND_SUBTIER=56
 
-cut --fields ${AWARD_SUBTIER} --delimiter , ${DATAFILE} \
-  | sort \
-  | uniq \
-  | cat > "unique_awarding_subtier.csv"
-
-cut --fields ${FUND_SUBTIER} --delimiter , ${DATAFILE} \
-    | sort \
-    | uniq \
-    | cat > "unique_funding_subtier.csv"
 U.S. Customs and Border Protection
 U.S. Immigration and Customs Enforcement
+
+ grep "PATTERN1\|PATTERN2" FILE
