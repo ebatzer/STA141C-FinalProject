@@ -8,7 +8,7 @@
 
 DATAFILE="/scratch/transaction.csv"
 
- grep -ecustoms and border protection \
+ grep -e customs and border protection \
    -e immigration and customs enforcement \
    -e executive office of immigration \
    --ignore-case \
