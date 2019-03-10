@@ -6,6 +6,8 @@
 # Give the job a name
 #SBATCH --job-name subset_sqlite
 
+module load bio
+
 printf "SELECT action_date, generate_pragmatic_obligation, total_obligation, awarding_agency_id,
 funding_agency_id, funding_subtier_agency_name
 FROM agency
