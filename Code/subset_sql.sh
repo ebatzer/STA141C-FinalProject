@@ -10,6 +10,7 @@
 module load bio
 
 # Generating SQL command to select relevant rows, filter data
+# Not sure if agency is the right table
 printf "SELECT action_date, generate_pragmatic_obligation, total_obligation, awarding_agency_id,
 funding_agency_id, funding_subtier_agency_name
 FROM agency
@@ -21,8 +22,8 @@ wget http://anson.ucdavis.edu/~clarkf/sta141c/usaspending.sqlite.zip
 unzip -p usaspending.sqlite.zip > usaspending.sqlite
 
 # Run SQL command and produce subsetted dataset
-cat select_agencies.sql | sqlite3 -header -csv usaspending.sqlite > selected_agencies.csv
+cat select_agencies.sql | sqlite3 -header -csv usaspending.sqlite > filtered_rows.csv
 
 # Remove zipped file, unzipped file to save space
-rm usaspending.sqlite.zip
-rm usaspending.sqlite
+# rm usaspending.sqlite.zip
+# rm usaspending.sqlite
