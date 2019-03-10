@@ -9,8 +9,8 @@
 # Loading in bio module for sqlite3
 module load bio
 
-printf "SELECT action_date, generate_pragmatic_obligation, total_obligation, awarding_agency_id,
 # Generating SQL command to select relevant rows, filter data
+printf "SELECT action_date, generate_pragmatic_obligation, total_obligation, awarding_agency_id,
 funding_agency_id, funding_subtier_agency_name
 FROM agency
 WHERE funding_subtier_agency_name = 'U.S. Customs and Border Protection'
