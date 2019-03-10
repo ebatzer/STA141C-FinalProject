@@ -5,13 +5,14 @@
 
 # Give the job a name
 #SBATCH --job-name subset_sqlite
-printf "SELECT toptier_agency_id, name FROM agency;\n" > first20.sql
 
-cat first20.sql | sqlite3 -header -csv ~/data/usaspending.sqlite > first20.csv
+printf "SELECT action_date, generate_pragmatic_obligation, total_obligation, awarding_agency_id,
+funding_agency_id, funding_subtier_agency_name
+FROM agency
+WHERE funding_subtier_agency_name = 'U.S. Customs and Border Protection'
+OR funding_subtier_agency_name = 'U.S. Immigration and Customs Enforcement';\n" > select_agencies.sql
 
 wget http://anson.ucdavis.edu/~clarkf/sta141c/usaspending.sqlite.zip |
   unzip -p > usaspending.sqlite
 
-cat first20.sql | sqlite3 -header -csv ~/data/usaspending.sqlite > first20.csv
-
-rm usaspending.sqlite
+cat select_agencies.sql | sqlite3 -header -csv ~/data/usaspending.sqlite > selected_agencies.csv
