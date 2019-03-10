@@ -17,8 +17,12 @@ WHERE funding_subtier_agency_name = 'U.S. Customs and Border Protection'
 OR funding_subtier_agency_name = 'U.S. Immigration and Customs Enforcement';\n" > select_agencies.sql
 
 # Download file and unzip
-wget http://anson.ucdavis.edu/~clarkf/sta141c/usaspending.sqlite.zip |
-  unzip -p > usaspending.sqlite
+wget http://anson.ucdavis.edu/~clarkf/sta141c/usaspending.sqlite.zip
+unzip -p usaspending.sqlite.zip > usaspending.sqlite
 
 # Run SQL command and produce subsetted dataset
 cat select_agencies.sql | sqlite3 -header -csv usaspending.sqlite > selected_agencies.csv
+
+# Remove zipped file, unzipped file to save space
+rm usaspending.sqlite.zip
+rm usaspending.sqlite
