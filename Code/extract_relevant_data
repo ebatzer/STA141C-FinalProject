@@ -7,10 +7,24 @@
 #SBATCH --job-name findagencies
 
 DATAFILE="/scratch/transaction.csv"
+DESCRIPTION=
+TOTAL_OBLIGATION=
+PRAG_OBLIGATION=
+ACTION_DATE=
+AWARDING_SUBTIER=
+FUNDING_SUBTIER=
+RECIPIENT=
+NAICS_CODE=
+PRODUCT_CODE=
+POP_STATE
+POP_COUNTY
+POP_ZIP
 
-${DATAFILE}
  grep -e customs and border protection \
    -e immigration and customs enforcement \
    -e executive office of immigration \
    --ignore-case \
-   | cat > selected_agencies.csv
+   ${DATAFILE} |
+   sort |
+   unique |
+   cat > selected_agencies.csv

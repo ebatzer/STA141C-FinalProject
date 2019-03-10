@@ -19,5 +19,6 @@ cut --fields ${FUND_SUBTIER} --delimiter , ${DATAFILE} \
     | sort \
     | uniq \
     | cat > "unique_funding_subtier.csv"
+
 U.S. Customs and Border Protection
 U.S. Immigration and Customs Enforcement
