@@ -13,3 +13,5 @@ wget http://anson.ucdavis.edu/~clarkf/sta141c/usaspending.sqlite.zip |
   unzip -p > usaspending.sqlite
 
 cat first20.sql | sqlite3 -header -csv ~/data/usaspending.sqlite > first20.csv
+
+rm usaspending.sqlite
