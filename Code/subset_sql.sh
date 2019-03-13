@@ -6,6 +6,10 @@
 # Give the job a name
 #SBATCH --job-name subset_sqlite
 
+# Send me an email when the job is completed!
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=ebatzer@ucdavis.edu
+
 # Loading in bio module for sqlite3
 module load bio
 
