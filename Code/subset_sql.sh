@@ -27,5 +27,8 @@ WHERE subtier_agency_id = 778
 OR subtier_agency_id = 776
 OR subtier_agency_id = 257" > filter_rows.sql
 
+# Find rows that match our subtier agency criteria
+cat unique_subtiers.sql | sqlite3 -header -csv ${DATAFILE} > subtier_names.csv
+
 # Run SQL command and produce subsetted dataset
 cat unique_subtiers.sql | sqlite3 -header -csv ${DATAFILE} > subtier_names.csv
