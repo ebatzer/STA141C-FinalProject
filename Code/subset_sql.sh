@@ -9,21 +9,23 @@
 # Loading in bio module for sqlite3
 module load bio
 
-# Generating SQL command to select relevant rows, filter data
-# Not sure if agency is the right table
-printf "SELECT action_date, generate_pragmatic_obligation, total_obligation, awarding_agency_id,
-funding_agency_id, funding_subtier_agency_name
-FROM agency
-WHERE funding_subtier_agency_name = 'U.S. Customs and Border Protection'
-OR funding_subtier_agency_name = 'U.S. Immigration and Customs Enforcement';\n" > select_agencies.sql
+# Setting location of SQL file
+DATAFILE="/scratch/usaspending.sqlite"
 
-# Download file and unzip
-wget http://anson.ucdavis.edu/~clarkf/sta141c/usaspending.sqlite.zip
-unzip -p usaspending.sqlite.zip > usaspending.sqlite
+# Generating SQL command to select relevant rows, filter data
+printf "SELECT DISTINCT name, subtier_agency_id
+FROM subtier_agency
+ORDER BY name ASC;\n" > unique_subtiers.sql
+
+# Join on meaningful columns
+printf "SELECT DISTINCT name, subtier_agency_id
+FROM subtier_agency
+FULL JOIN (SELECT award_id, total_obligation, generated_pragmatic_obligation,
+pop_state_code, pop_county_code, pop_zip5, naics_code, awarding_subtier_agency_name)
+ON name=awarding_subtier_agency_name
+WHERE subtier_agency_id = 778
+OR subtier_agency_id = 776
+OR subtier_agency_id = 257" > filter_rows.sql
 
 # Run SQL command and produce subsetted dataset
-cat select_agencies.sql | sqlite3 -header -csv usaspending.sqlite > filtered_rows.csv
-
-# Remove zipped file, unzipped file to save space
-# rm usaspending.sqlite.zip
-# rm usaspending.sqlite
+cat unique_subtiers.sql | sqlite3 -header -csv ${DATAFILE} > subtier_names.csv
