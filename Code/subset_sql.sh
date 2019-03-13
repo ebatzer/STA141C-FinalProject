@@ -31,4 +31,4 @@ OR subtier_agency_id = 257" > filter_rows.sql
 cat unique_subtiers.sql | sqlite3 -header -csv ${DATAFILE} > subtier_names.csv
 
 # Run SQL command and produce subsetted dataset
-cat unique_subtiers.sql | sqlite3 -header -csv ${DATAFILE} > subtier_names.csv
+cat filter_rows.sql | sqlite3 -header -csv ${DATAFILE} > filtered_data.csv
