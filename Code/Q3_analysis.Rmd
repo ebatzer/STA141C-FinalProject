@@ -1,0 +1,45 @@
+---
+title: "Question 3 Analysis"
+output: html_notebook
+---
+
+# Reading in datafiles
+
+```{r}
+library(data.table); library(dtplyr); library(tidyverse)
+
+dat = fread(file = "../Data/filtered_data.csv", sep = ",", header = TRUE)
+nrow(dat) # Roughly 300,000 unique transactions
+colnames(dat)
+
+naics_codes = fread(file = "../Data/naics_codes.csv", sep = ",", header = TRUE)
+```
+
+### Does total yearly obligation match government figures?
+
+```{r}
+unique(dat$funding_subtier_agency_name)
+unique(dat$awarding_subtier_agency_name)
+```
+
+
+```{r}
+dat %>% 
+  group_by(fiscal_year) %>%
+  summarise(total_spending = sum(total_obligation)) %>% 
+  mutate(total_spending_Bn = total_spending / 1e9)
+
+dat %>% 
+  group_by(fiscal_year) %>% 
+  summarise(total_spending = sum(generated_pragmatic_obligation)) %>% 
+  mutate(total_spending_Bn = total_spending / 1e9)
+```
+
+```{r}
+dat %>% 
+  filter(funding_subtier_agency_name %in% unique(dat$awarding_subtier_agency_name)) %>%
+  group_by(fiscal_year) %>%
+  summarise(total_spending = sum(total_obligation)) %>% 
+  mutate(total_spending_Bn = total_spending / 1e9)
+```
+
