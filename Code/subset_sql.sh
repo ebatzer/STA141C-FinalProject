@@ -22,8 +22,10 @@ FROM subtier_agency
 ORDER BY name ASC;\n" > unique_subtiers.sql
 
 # Join on meaningful columns
-printf "SELECT award_id, total_obligation, generated_pragmatic_obligation,
-pop_state_code, pop_county_code, pop_zip5, naics_code, awarding_subtier_agency_name
+printf "SELECT award_id, action_date, fiscal_year, total_obligation,
+generated_pragmatic_obligation, transaction_description, award_category,
+pop_country_name, pop_state_code, pop_county_name, pop_zip5, naics_code,
+awarding_subtier_agency_name, funding_subtier_agency_name, business categories
 FROM universal_transaction_matview
 LEFT JOIN (SELECT DISTINCT name, subtier_agency_id FROM subtier_agency)
 ON awarding_subtier_agency_name=name
