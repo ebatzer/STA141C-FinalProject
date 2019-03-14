@@ -25,7 +25,7 @@ ORDER BY name ASC;\n" > unique_subtiers.sql
 printf "SELECT award_id, action_date, fiscal_year, total_obligation,
 generated_pragmatic_obligation, transaction_description, award_category,
 pop_country_name, pop_state_code, pop_county_name, pop_zip5, naics_code,
-awarding_subtier_agency_name, funding_subtier_agency_name, business categories
+awarding_subtier_agency_name, funding_subtier_agency_name, business_categories
 FROM universal_transaction_matview
 LEFT JOIN (SELECT DISTINCT name, subtier_agency_id FROM subtier_agency)
 ON awarding_subtier_agency_name=name
