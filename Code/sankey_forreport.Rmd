@@ -1,0 +1,98 @@
+---
+title: "Border Spending Sankey Diagram"
+output: html_document
+---
+
+__Figure 3: __ Sankey Diagram depicting award funding to different NAICS (North American Industry Classification System) transaction description categories. NAICS description categories are hierarchical, and movement of funds represent the subdivision of total funding pools into increasingly fine-grained categories. To reduce clutter, data is only shown for four hierarchical levels:
+
+* Awarding agency: Departments of Customs and Border Protection, Immigration and Customs Enforcement
+* Sector: 2-digit code
+* Subsector: 3-digit code
+* Industry Group: 4-digit code
+
+In addition, sector codes displayed were limited to the three categories with the largest funding totals: Professional, Scientific, and Techincal Services; Administrative and Support and Waste Management and Remediation Services; and Information. Together, these three categories comprised a substantial majority of the transactions with recorded NAICS codes.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Data manipulation
+library(data.table); library(dtplyr); library(tidyverse);
+
+# Consumer Price Index inflation corrections
+library(quantmod)
+
+# Generating Sankey diagrams
+library(networkD3); library(magrittr); library(htmlTable); library(htmltools); library(htmlwidgets)
+
+sum(is.na(alldat$naics_code)) / nrow(alldat)
+
+
+sankey_data = read.csv("../Data/transaction_data_NAICS.csv", stringsAsFactors = FALSE) %>% filter(fiscal_year > 2008)
+
+edges = sankey_data %>% filter(awarding_subtier_agency_name %in% 
+                    c("U.S. Customs and Border Protection", "U.S. Immigration and Customs Enforcement")) %>%
+  filter(title_d2 != "NA") %>%
+  group_by(awarding_subtier_agency_name, title_d2) %>%
+  summarise(value = sum(generated_pragmatic_obligation)) %>%
+  mutate(rank = rank(desc(value))) %>%
+  arrange(desc(value)) %>%
+  mutate(title_d2 = case_when(rank < 4 ~ title_d2,
+                              rank >= 4 ~ "Other")) %>%
+  group_by(awarding_subtier_agency_name, title_d2) %>%  
+  summarise(value = sum(value)) %>%
+  ungroup()
+
+
+edges_2 = sankey_data %>% filter(title_d2 %in% unique(edges$title_d2)) %>%
+  filter(title_d2 != "NA") %>%
+  group_by(title_d2, title_d3) %>%
+  summarise(value = sum(generated_pragmatic_obligation)) %>%
+  mutate(rank = rank(desc(value))) %>%
+  arrange(desc(value)) %>%
+  group_by(title_d2, title_d3) %>%  
+  summarise(value = sum(value)) %>%
+  ungroup()
+
+
+edges_3 = sankey_data %>% filter(title_d3 %in% unique(edges_2$title_d3)) %>%
+  filter(title_d3 != "NA") %>%
+  group_by(title_d3, title_d4) %>%
+  summarise(value = sum(generated_pragmatic_obligation)) %>%
+  mutate(rank = rank(desc(value))) %>%
+  arrange(desc(value)) %>%
+  group_by(title_d3, title_d4) %>%  
+  summarise(value = sum(value)) %>%
+  ungroup()
+
+colnames(edges) = c("source", "target", "value")
+colnames(edges_2) = c("source", "target", "value")
+colnames(edges_3) = c("source", "target", "value")
+
+edges = bind_rows(edges, edges_2, edges_3)
+edges = edges %>% filter(source != target)
+
+sources <- edges %>%
+  distinct(source) %>%
+  rename(label = source)
+
+targets <- edges %>%
+  distinct(target) %>%
+  rename(label = target)
+
+nodes <- full_join(sources, targets, by = "label")
+nodes <- nodes %>% rowid_to_column("id") %>% mutate(id = id - 1)
+
+edges <- edges %>% 
+  left_join(nodes, by = c("source" = "label")) %>% 
+  rename(from = id)
+
+edges <- edges %>% 
+  left_join(nodes, by = c("target" = "label")) %>% 
+  rename(to = id)
+
+edges <- select(edges, from, to, value)
+edges$value = edges$value / 1e6
+
+sankeyNetwork(edges, nodes, Source = "from", Target = "to", Value = "value",
+              NodeID = "label", units = "Million USD", fontSize = 12, nodeWidth = 30, sinksRight = FALSE,
+              fontFamily = "sans-serif", height = 700, width = 1400) 
+```
+

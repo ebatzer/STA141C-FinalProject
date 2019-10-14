@@ -1,45 +1,119 @@
 ---
-title: "Question 3 Analysis"
-output: html_notebook
+title: "Analysis 3/14"
+output:
+  html_document:
+    df_print: paged
 ---
 
-# Reading in datafiles
+## Update on Analysis
 
-```{r}
+See SQL files for detail on queries used to generate these datasets
+
+In short, I queried the SQL database to find all transactions where Customs and Border Patrol, Immigration and Customs Enforcement, and the Executive Office of Immigration review were either funding or awarding agencies.
+
+This code is pretty quick - maybe 20 minutes to produce all datasets, so feel free to run it yourself.
+
+```{r, echo = FALSE}
 library(data.table); library(dtplyr); library(tidyverse)
 
-dat = fread(file = "../Data/filtered_data.csv", sep = ",", header = TRUE)
-nrow(dat) # Roughly 300,000 unique transactions
-colnames(dat)
+# When ICE, CBP, and EOIR are awarding agencies:
+alldat = fread(file = "../data/filtered_data_awarding.csv", sep = ",", header = TRUE)
+cat("\nAwarding Transactions:\n")
+nrow(alldat) # 289340 awarding transactions
 
-naics_codes = fread(file = "../Data/naics_codes.csv", sep = ",", header = TRUE)
+# When ICE, CBP, and EOIR are funding agencies:
+fund = fread(file = "../data/filtered_data_funding.csv", sep = ",", header = TRUE)
+cat("\nFunding Transactions:\n")
+nrow(fund) # 154261 funding transactions
+
+# NAICS code table:
+naics_codes = fread(file = "../data/naics_codes.csv", sep = ",", header = TRUE)
+
+# Binding all rows together and taking distinct values
+alldat = bind_rows(alldat, fund) %>% 
+  distinct(award_id, action_date, total_obligation, generated_pragmatic_obligation, transaction_description, .keep_all = TRUE)
+cat("\nTotal Transactions:\n")
+nrow(alldat) # 300319 (Few times where these agencies funded, but did not alldat)
+```
+
+### Duplicated transaction IDs
+
+To check that we don't have a ton of duplicated transactions in the dataset, I checked the number of observations occuring for each transaction ID. The resulting table shows that some transaction IDs are repeated over 100 times each in the dataset, which may be problematic:
+
+```{r}
+alldat %>% group_by(award_id) %>% summarise(count = n()) %>% arrange(desc(count)) %>% head()
+```
+
+But on further inspectioon, these appear to renewed contracts with the same ID. Below are the first 6 rows for the most common transaction ID, which looks like a contract for guard service that is continued every year. An important note here is that the total obligation is consistent across all of these shared transactions, but the pragmatic obligation varies substantially. 
+
+```{r}
+alldat[alldat$award_id == 69245855,]  %>% head()
+```
+
+To me, this seems like evidence we should be working with the pragmatic obligation, not just the total obligation.
+
+### Distribution of pragmatic obligation
+
+As additional error checking, I've also plotted the distribution of generated obligations, both raw and the log10 + 1 transformation of absolute values. Most transactions seem to have zero cost or are relatively small -- in the range of 100 - 10,000 dollars -- but there are a few extremes. I've highlighted one example below:
+
+```{r}
+alldat %>% 
+  ggplot(aes(x = generated_pragmatic_obligation)) +
+  geom_density(fill = "blue", alpha = .25) +
+  ggtitle("Obligation Frequency")
+
+alldat %>% 
+  ggplot(aes(x = log10(abs(generated_pragmatic_obligation) + 1))) +
+  geom_density(fill = "blue", alpha = .25) +
+  ggtitle("Obligation Frequency (Log10 + 1Transformed)")
+```
+
+This looks like some massive overspending for some sort of fencing project. As an aside, I think it'd be neat to see if we can figure out which transactions are most likely to go over budget.
+
+```{r}
+alldat[alldat$generated_pragmatic_obligation == max(alldat$generated_pragmatic_obligation),]
 ```
 
 ### Does total yearly obligation match government figures?
 
-```{r}
-unique(dat$funding_subtier_agency_name)
-unique(dat$awarding_subtier_agency_name)
-```
+Below is a table of official statistics reported by the current presidential administration on border funding:
 
+![](../Figures/Official_Budget.png)
 
-```{r}
-dat %>% 
+When we compare these with spending totals generated from our data, it seems that the USASpending dataset is likely under-reporting by 50% or more. Aside from an error in my code, this could be the result of limited reporting requirements of the Department of Homeland Security to this dataset. 
+
+```{r, echo = FALSE}
+# Total Obligation
+total_spending = alldat %>% 
   group_by(fiscal_year) %>%
-  summarise(total_spending = sum(total_obligation)) %>% 
-  mutate(total_spending_Bn = total_spending / 1e9)
+  summarise(total_obligation = sum(total_obligation)) %>% 
+  mutate(total_obligation_Bn = total_obligation / 1e9)
 
-dat %>% 
+# Pragmatic Obligation
+total_obligation = alldat %>% 
   group_by(fiscal_year) %>% 
-  summarise(total_spending = sum(generated_pragmatic_obligation)) %>% 
-  mutate(total_spending_Bn = total_spending / 1e9)
-```
+  summarise(total_prag_obligation = sum(generated_pragmatic_obligation)) %>% 
+  mutate(total_prag_obligation_Bn = total_prag_obligation / 1e9)
 
-```{r}
-dat %>% 
-  filter(funding_subtier_agency_name %in% unique(dat$awarding_subtier_agency_name)) %>%
+# Non-negative pragmatic obligation
+nonneg_obligation = alldat %>% 
+  filter(generated_pragmatic_obligation > 0) %>%
   group_by(fiscal_year) %>%
-  summarise(total_spending = sum(total_obligation)) %>% 
-  mutate(total_spending_Bn = total_spending / 1e9)
+  summarise(nonneg_prag_obligation = sum(generated_pragmatic_obligation)) %>% 
+  mutate(nonneg_prag_obligation_Bn = nonneg_prag_obligation / 1e9)
+
+# Joining together
+left_join(total_spending, total_obligation, by = "fiscal_year") %>%
+  left_join(nonneg_obligation, by = "fiscal_year")
+
+# Plotting
+
+left_join(total_spending, total_obligation, by = "fiscal_year") %>%
+  left_join(nonneg_obligation, by = "fiscal_year") %>%
+  ggplot(aes(x = fiscal_year,
+             y = nonneg_prag_obligation_Bn)) +
+  geom_line() + 
+  ggtitle("Pragmatic Obligation over Time")
+
 ```
 
