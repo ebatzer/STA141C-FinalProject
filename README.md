@@ -11,7 +11,5 @@ __2. Scripts:__ Scripts used to query data on the UC Davis cluster, analyze data
 
 ## Authors
 Evan Batzer 
-
 Daemon Gaylor 
-
 Wyatt Robertson
