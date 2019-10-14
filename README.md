@@ -10,6 +10,4 @@ __1. Data:__ Small datafiles associated with this project.
 __2. Scripts:__ Scripts used to query data on the UC Davis cluster, analyze data, and visualize results.
 
 ## Authors
-Evan Batzer 
-Daemon Gaylor 
-Wyatt Robertson
+Evan Batzer, Daemon Gaylor, and Wyatt Robertson
